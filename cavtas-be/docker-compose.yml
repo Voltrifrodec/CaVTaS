@@ -1,0 +1,85 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+  cavtas-db:
+    container_name: cavtas-db
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_DATABASE: cavtas
+      MARIADB_ROOT_HOST: '%'
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_USER: mariadb
+      MARIADB_PASSWORD: mariadb
+    volumes:
+      - data:/var/lib/mysql
+      - logs:/var/log/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - cavtas
+
+  # redis:
+  #   container_name: "redis-server"
+  #   image: redis:latest
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - ./tmp/redis_data:/var/lib/redis/data
+  #   networks:
+  #     - cavtas
+
+  cavtas-rabbitmq-server:
+    image: rabbitmq:management-alpine
+    container_name: cavtas-rabbitmq-server
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - cavtas
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+
+  # rabbitmq:
+  #   image: rabbitmq:3-management-alpine
+  #   container_name: 'rabbitmq'
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  #   volumes:
+  #     - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+  #     - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+  #   networks:
+  #     - cavtas
+
+  cavtas-be:
+    restart: always
+    container_name: cavtas-be
+    image: cavtas-be
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=cavtas-db
+      - RABBITMQ_HOST=bazarik-rabbitmq-server
+    networks:
+      - cavtas
+    
+  # cavtas-fe:
+  #   container_name: cavtas-fe
+  #   image: cavtas-fe
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - cavtas
+
+networks:
+  cavtas: # Je potrebne spustit prikaz: docker network create cavtas
+    name: cavtas
+    driver: bridge
+    external: true
+
+volumes:
+  data:
+  logs:
