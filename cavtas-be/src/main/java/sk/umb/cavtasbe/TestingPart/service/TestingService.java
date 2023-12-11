@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class TestingService {
     }
 
 
+    @Cacheable(value = "lastTestingItemIdCache", key = "{#id}")
     public TestingDetailDTO getTestingItemById(Long id) {
         return mapToTestingDetailDTO(testingRepository.findById(id).get());
     }
